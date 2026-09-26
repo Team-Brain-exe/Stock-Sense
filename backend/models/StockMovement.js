@@ -2,15 +2,45 @@ const mongoose = require('mongoose');
 
 const stockMovementSchema = new mongoose.Schema(
   {
-    productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
+    // New structure
+    product_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Product',
+    },
+
+    warehouse_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Warehouse',
+    },
+
+    qty_change: {
+      type: Number,
+    },
+
+    user_id: {
+      type: String,
+    },
+
+    // Existing database structure
+    productId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Product',
+    },
+
+    quantity: {
+      type: Number,
+    },
+
+    // Common field
     type: {
       type: String,
       enum: ['delivery', 'receipt', 'transfer', 'adjustment'],
       required: true,
     },
-    quantity: { type: Number, required: true },
   },
-  { timestamps: true } // gives us createdAt, used by the forecast history aggregation
+  {
+    timestamps: true,
+  }
 );
 
 module.exports = mongoose.model('StockMovement', stockMovementSchema);
