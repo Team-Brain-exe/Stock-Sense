@@ -1,0 +1,15 @@
+{
+  "name": "stock-sense-backend",
+  "version": "1.0.0",
+  "description": "Stock-Sense backend (temporary package.json — replace when team's real one is pushed)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test-analytics": "node ../scripts/test-analytics-local.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "mongoose": "^8.5.0",
+    "dotenv": "^16.4.5"
+  }
+}

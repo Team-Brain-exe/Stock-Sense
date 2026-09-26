@@ -18,3 +18,7 @@ build/
 # IDE
 .vscode/
 .idea/
+
+/scripts/
+/package.json
+/package-lock.json
