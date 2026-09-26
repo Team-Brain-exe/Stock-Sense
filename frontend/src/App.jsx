@@ -8,6 +8,8 @@ import LowStockToast from "./components/LowStockToast.jsx";
 import useLowStockAlerts from "./hooks/useLowStockAlerts.js";
 import Icon from "./components/Icon.jsx";
 import { Button, Text } from "./components/ui.jsx";
+import Receipts from "./pages/Receipts.jsx";
+import Adjustments from "./pages/Adjustments.jsx";
 
 // Products / Receipts / Adjustments are Harisha's pages. This app runs on
 // its own without them — each shows a placeholder until her files land in
@@ -59,7 +61,9 @@ export default function App() {
 const page = useMemo(() => {
     if (activePage === "dashboard") return <Dashboard onNavigate={setActivePage} />;
     if (activePage === "products") return <Products />;
-    if (activePage === "deliveries") return <Deliveries onLowStock={injectAlert} />;  
+    if (activePage === "receipts") return <Receipts />;
+    if (activePage === "adjustments") return <Adjustments />;
+    if (activePage === "deliveries") return <Deliveries onLowStock={injectAlert} />;
     if (activePage === "transfers") return <Transfers />;
     if (activePage === "ledger") return <Ledger />;
     return <Placeholder page={activePage} />;

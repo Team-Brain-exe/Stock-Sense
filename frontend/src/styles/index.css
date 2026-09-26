@@ -345,3 +345,64 @@ p { margin: 0; }
     width: 100%;
   }
 }
+.barcode-scanner {
+  margin-top: 16px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.barcode-scanner-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 16px;
+}
+
+.barcode-scanner-head h3 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.barcode-reader {
+  width: 100%;
+  min-height: 220px;
+  margin-bottom: 12px;
+  border: 1px solid var(--line);
+  background: var(--ink);
+}
+
+.scanner-help {
+  margin-top: 9px;
+  color: var(--text-dim);
+  font: 8px "IBM Plex Mono";
+}
+
+.manual-scanner label {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.manual-scanner label span {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--text-muted);
+  font: 8px "IBM Plex Mono";
+  text-transform: uppercase;
+}
+
+.manual-scanner input {
+  width: 100%;
+  height: 41px;
+  padding: 0 11px;
+  border: 1px solid var(--line-bright);
+  outline: 0;
+  background: var(--surface-raised);
+  color: var(--text);
+  font-size: 10px;
+}
+
+.manual-scanner input:focus {
+  border-color: var(--lime);
+}
