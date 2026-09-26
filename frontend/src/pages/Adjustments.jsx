@@ -40,6 +40,7 @@ export default function Adjustments() {
   const [location, setLocation] = useState("");
   const [countedQuantity, setCountedQuantity] = useState("");
   const [message, setMessage] = useState("");
+  const [adjustmentLog, setAdjustmentLog] = useState([]);
 
   const selectedProduct = products.find(
     (product) => product.id === Number(productId)
@@ -73,11 +74,30 @@ export default function Adjustments() {
       return;
     }
 
+    const newAdjustment = {
+      id: Date.now(),
+      product: selectedProduct.name,
+      sku: selectedProduct.sku,
+      location: location,
+      recorded: currentStock,
+      counted: Number(countedQuantity),
+      delta: delta,
+    };
+
+    setAdjustmentLog((current) => [
+      newAdjustment,
+      ...current,
+    ]);
+
     setMessage(
       `Adjustment confirmed for ${selectedProduct.name}. Stock changed by ${
         delta > 0 ? "+" : ""
       }${delta} units.`
     );
+
+    setProductId("");
+    setLocation("");
+    setCountedQuantity("");
   };
 
   return (
@@ -114,8 +134,6 @@ export default function Adjustments() {
       )}
 
       <div className="split-layout">
-        {/* ADJUSTMENT FORM */}
-
         <section className="panel transfer-form">
           <div className="panel-header">
             <div>
@@ -128,8 +146,6 @@ export default function Adjustments() {
               </Text>
             </div>
           </div>
-
-          {/* PRODUCT */}
 
           <label className="form-field">
             <span>Product</span>
@@ -156,8 +172,6 @@ export default function Adjustments() {
             </select>
           </label>
 
-          {/* LOCATION */}
-
           <label className="form-field">
             <span>Location</span>
 
@@ -180,8 +194,6 @@ export default function Adjustments() {
             </select>
           </label>
 
-          {/* CURRENT STOCK */}
-
           <div className="adjustment-stock">
             <span>Current recorded stock</span>
 
@@ -191,8 +203,6 @@ export default function Adjustments() {
                 : "—"}
             </strong>
           </div>
-
-          {/* COUNTED QUANTITY */}
 
           <label className="form-field">
             <span>Counted quantity</span>
@@ -208,8 +218,6 @@ export default function Adjustments() {
               }}
             />
           </label>
-
-          {/* DELTA */}
 
           <div className="adjustment-delta">
             <span>Stock difference</span>
@@ -229,8 +237,6 @@ export default function Adjustments() {
             </strong>
           </div>
         </section>
-
-        {/* PREVIEW */}
 
         <section className="panel process-panel">
           <div className="process-top">
@@ -345,8 +351,6 @@ export default function Adjustments() {
         </section>
       </div>
 
-      {/* ADJUSTMENT LOG */}
-
       <section
         className="panel activity-panel"
         style={{ marginTop: "16px" }}
@@ -358,22 +362,70 @@ export default function Adjustments() {
             </Text>
 
             <Text as="h2">
-              Inventory correction
+              Inventory corrections
             </Text>
           </div>
         </div>
 
-        <div className="products-empty">
-          <Icon name="sliders" size={28} />
+        {adjustmentLog.length === 0 ? (
+          <div className="products-empty">
+            <Icon name="sliders" size={28} />
 
-          <Text as="h3">
-            Ready for adjustment
-          </Text>
+            <Text as="h3">
+              No adjustments yet
+            </Text>
 
-          <Text>
-            Select a product, location, and physical count to calculate the stock difference.
-          </Text>
-        </div>
+            <Text>
+              Confirm an adjustment above and it will appear here.
+            </Text>
+          </div>
+        ) : (
+          <div className="movement-table">
+            <div className="table-row table-head">
+              <span>SKU</span>
+              <span>PRODUCT</span>
+              <span>LOCATION</span>
+              <span>COUNTED</span>
+              <span>DELTA</span>
+            </div>
+
+            {adjustmentLog.map((item) => (
+              <div
+                className="table-row"
+                key={item.id}
+              >
+                <span className="mono">
+                  {item.sku}
+                </span>
+
+                <span>
+                  <b>{item.product}</b>
+                </span>
+
+                <span>
+                  {item.location}
+                </span>
+
+                <span>
+                  {item.counted}
+                </span>
+
+                <span
+                  className={
+                    item.delta > 0
+                      ? "positive mono"
+                      : item.delta < 0
+                      ? "negative mono"
+                      : "mono"
+                  }
+                >
+                  {item.delta > 0 ? "+" : ""}
+                  {item.delta}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );
