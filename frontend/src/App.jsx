@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import Dashboard from "./pages/Dashboard.jsx";
+import Products from "./pages/Products.jsx";
 import Deliveries from "./pages/Deliveries.jsx";
 import Transfers from "./pages/Transfers.jsx";
 import Ledger from "./pages/Ledger.jsx";
@@ -55,9 +56,10 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { alerts, dismissAlert, injectAlert } = useLowStockAlerts();
 
-  const page = useMemo(() => {
+const page = useMemo(() => {
     if (activePage === "dashboard") return <Dashboard onNavigate={setActivePage} />;
-    if (activePage === "deliveries") return <Deliveries onLowStock={injectAlert} />;
+    if (activePage === "products") return <Products />;
+    if (activePage === "deliveries") return <Deliveries onLowStock={injectAlert} />;  
     if (activePage === "transfers") return <Transfers />;
     if (activePage === "ledger") return <Ledger />;
     return <Placeholder page={activePage} />;
