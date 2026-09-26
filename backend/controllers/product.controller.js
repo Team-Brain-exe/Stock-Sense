@@ -50,7 +50,7 @@ async function searchProducts(req, res) {
 // POST /api/products
 async function createProduct(req, res) {
   try {
-    const { name, category, stockQty, warehouse_id } = req.body;
+    const { name, category, stockQty, warehouse_id, sku, reorder_threshold, location } = req.body;
 
     if (!name || !category || !warehouse_id) {
       return res.status(400).json({
@@ -63,6 +63,9 @@ async function createProduct(req, res) {
       category,
       stockQty: stockQty || 0,
       warehouse_id,
+      ...(sku !== undefined && { sku }),
+      ...(reorder_threshold !== undefined && { reorder_threshold }),
+      ...(location !== undefined && { location }),
     });
 
     res.status(201).json(product);

@@ -24,9 +24,17 @@ async function getProductForecastHistory(req, res) {
       return res.status(400).json({ error: 'Invalid product id' });
     }
 
-    const since = new Date();
-    since.setHours(0, 0, 0, 0);
-    since.setDate(since.getDate() - (days - 1));
+    // IMPORTANT: do all date math in UTC. $dateToString below groups by UTC
+    // calendar day by default, so if we compute "today"/"since" using local
+    // time (setHours/setDate) on a server running east of UTC, local
+    // midnight is still "yesterday" in UTC — which silently drops the most
+    // recent day from the results. Building both ends in UTC keeps the
+    // day-list and the aggregation's grouping in agreement no matter what
+    // timezone the server itself is running in.
+    const now = new Date();
+    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const since = new Date(today);
+    since.setUTCDate(since.getUTCDate() - (days - 1));
 
     const results = await StockMovement.aggregate([
       {
@@ -38,7 +46,7 @@ async function getProductForecastHistory(req, res) {
       },
       {
         $group: {
-          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt', timezone: 'UTC' } },
           // qty_change is stored negative for deliveries (see movement.controller.js:
           // createMovement does stockQty + qty_change), so flip the sign here to
           // report a positive "quantity shipped out" number.
@@ -53,8 +61,6 @@ async function getProductForecastHistory(req, res) {
 
     const daysArr = [];
     const cursor = new Date(since);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
 
     while (cursor <= today) {
       const dateStr = cursor.toISOString().slice(0, 10);
@@ -62,7 +68,7 @@ async function getProductForecastHistory(req, res) {
         date: dateStr,
         qtyOut: byDate.get(dateStr) || 0,
       });
-      cursor.setDate(cursor.getDate() + 1);
+      cursor.setUTCDate(cursor.getUTCDate() + 1);
     }
 
     return res.json({
