@@ -19,6 +19,11 @@ app.use('/api/products', productRoutes);
 const movementRoutes = require('./routes/movements.routes');
 
 app.use('/api/movements', movementRoutes);
+
+// Analytics routes (forecast history, warehouse stock summary)
+const analyticsRoutes = require('./routes/analytics.routes');
+
+app.use('/api', analyticsRoutes);
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {

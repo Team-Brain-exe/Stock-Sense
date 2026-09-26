@@ -31,7 +31,7 @@ async function getProductForecastHistory(req, res) {
     const results = await StockMovement.aggregate([
       {
         $match: {
-          productId: new mongoose.Types.ObjectId(id),
+          product_id: new mongoose.Types.ObjectId(id),
           type: 'delivery',
           createdAt: { $gte: since },
         },
@@ -39,7 +39,10 @@ async function getProductForecastHistory(req, res) {
       {
         $group: {
           _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
-          qtyOut: { $sum: '$quantity' },
+          // qty_change is stored negative for deliveries (see movement.controller.js:
+          // createMovement does stockQty + qty_change), so flip the sign here to
+          // report a positive "quantity shipped out" number.
+          qtyOut: { $sum: { $multiply: ['$qty_change', -1] } },
         },
       },
       { $sort: { _id: 1 } },
