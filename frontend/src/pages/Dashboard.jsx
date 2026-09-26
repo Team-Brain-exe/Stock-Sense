@@ -35,6 +35,14 @@ const fallbackCriticalStock = [
 const fallbackBars = [38, 52, 46, 61, 55, 70, 63, 76, 59, 67, 74, 62, 81, 78, 86, 69, 91, 83, 76, 88, 94, 82, 90, 96];
 const fallbackThroughput = { total: "4,892", deltaLabel: "+12.6%" };
 
+function getGreeting() {
+  const hour = new Date().getHours();
+
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+}
+
 export default function Dashboard({ onNavigate }) {
   const [kpis, setKpis] = useState(fallbackKpis);
   const [criticalStock, setCriticalStock] = useState(fallbackCriticalStock);
@@ -42,6 +50,16 @@ export default function Dashboard({ onNavigate }) {
   const [throughput, setThroughput] = useState(fallbackThroughput);
   const [recentMovements, setRecentMovements] = useState(mockMovements.slice(0, 5));
   const [loading, setLoading] = useState(true);
+  const [greeting, setGreeting] = useState(getGreeting);
+
+  useEffect(() => {
+    const updateGreeting = () => setGreeting(getGreeting());
+    updateGreeting();
+
+    const greetingTimer = window.setInterval(updateGreeting, 60000);
+
+    return () => window.clearInterval(greetingTimer);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -80,7 +98,7 @@ export default function Dashboard({ onNavigate }) {
       <header className="page-header dashboard-header">
         <div>
           <Text className="eyebrow">{loading ? "Syncing…" : "Live"} · Operational overview</Text>
-          <Text as="h1" className="page-title">Good morning, Arya.</Text>
+          <Text as="h1" className="page-title">{greeting}, Arya.</Text>
           <Text className="page-subtitle">Your inventory network is stable. <b>{criticalStock.length} signals</b> need attention.</Text>
         </div>
         <div className="header-tools">

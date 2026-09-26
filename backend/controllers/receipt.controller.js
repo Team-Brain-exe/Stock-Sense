@@ -1,7 +1,3 @@
-// NOTE: Receipts.jsx has no API calls yet (local state only). Sensible
-// design following movement.controller.js's convention; flag to Harisha
-// that the page needs wiring to actually call this.
-
 const Product = require('../models/Product');
 const StockMovement = require('../models/StockMovement');
 

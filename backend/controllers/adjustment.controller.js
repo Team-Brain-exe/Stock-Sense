@@ -1,7 +1,3 @@
-// NOTE: Adjustments.jsx has no API calls yet (local state only). Sensible
-// design following the original brief; flag to Harisha that the page needs
-// wiring to actually call this.
-
 const Product = require('../models/Product');
 const StockMovement = require('../models/StockMovement');
 

@@ -1,32 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Icon from "../components/Icon.jsx";
 import { Button, Text } from "../components/ui.jsx";
+import { apiGet, apiPost } from "../api/client";
 
-const products = [
-  {
-    id: 1,
-    name: "Wireless Keyboard",
-    sku: "KB-001",
-    stock: 124,
-  },
-  {
-    id: 2,
-    name: "Office Chair",
-    sku: "CH-024",
-    stock: 18,
-  },
-  {
-    id: 3,
-    name: "USB-C Cable",
-    sku: "UC-102",
-    stock: 56,
-  },
-  {
-    id: 4,
-    name: "Laptop Stand",
-    sku: "LS-014",
-    stock: 8,
-  },
+// Fallback products used only if GET /api/products isn't reachable, so the
+// page still demos even if the backend is down.
+const fallbackProducts = [
+  { id: 1, name: "Wireless Keyboard", sku: "KB-001", stock: 124 },
+  { id: 2, name: "Office Chair", sku: "CH-024", stock: 18 },
+  { id: 3, name: "USB-C Cable", sku: "UC-102", stock: 56 },
+  { id: 4, name: "Laptop Stand", sku: "LS-014", stock: 8 },
 ];
 
 const locations = [
@@ -36,26 +19,43 @@ const locations = [
 ];
 
 export default function Adjustments() {
+  const [products, setProducts] = useState(fallbackProducts);
   const [productId, setProductId] = useState("");
   const [location, setLocation] = useState("");
   const [countedQuantity, setCountedQuantity] = useState("");
   const [message, setMessage] = useState("");
   const [adjustmentLog, setAdjustmentLog] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    apiGet("/products", null).then((rows) => {
+      if (cancelled || !rows) return;
+      // Backend Product docs use _id/stockQty; normalize to what this page expects.
+      setProducts(
+        rows.map((p) => ({
+          id: p._id,
+          name: p.name,
+          sku: p.sku,
+          stock: p.stockQty,
+        }))
+      );
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const selectedProduct = products.find(
-    (product) => product.id === Number(productId)
+    (product) => String(product.id) === String(productId)
   );
 
-  const currentStock = selectedProduct
-    ? selectedProduct.stock
-    : 0;
+  const currentStock = selectedProduct ? selectedProduct.stock : 0;
 
   const delta =
-    countedQuantity === ""
-      ? 0
-      : Number(countedQuantity) - currentStock;
+    countedQuantity === "" ? 0 : Number(countedQuantity) - currentStock;
 
-  const confirmAdjustment = () => {
+  const confirmAdjustment = async () => {
     if (!productId) {
       setMessage("Select a product.");
       return;
@@ -66,34 +66,63 @@ export default function Adjustments() {
       return;
     }
 
-    if (
-      countedQuantity === "" ||
-      Number(countedQuantity) < 0
-    ) {
+    if (countedQuantity === "" || Number(countedQuantity) < 0) {
       setMessage("Enter a valid counted quantity.");
       return;
     }
 
-    const newAdjustment = {
-      id: Date.now(),
-      product: selectedProduct.name,
-      sku: selectedProduct.sku,
-      location: location,
-      recorded: currentStock,
-      counted: Number(countedQuantity),
-      delta: delta,
-    };
-
-    setAdjustmentLog((current) => [
-      newAdjustment,
-      ...current,
-    ]);
-
-    setMessage(
-      `Adjustment confirmed for ${selectedProduct.name}. Stock changed by ${
-        delta > 0 ? "+" : ""
-      }${delta} units.`
+    setSubmitting(true);
+    const result = await apiPost(
+      "/adjustments",
+      {
+        sku: selectedProduct.sku,
+        location,
+        countedQuantity: Number(countedQuantity),
+      },
+      null
     );
+    setSubmitting(false);
+
+    const newAdjustment = result
+      ? {
+          id: result.id,
+          product: result.product,
+          sku: result.sku,
+          location: result.location,
+          recorded: result.recorded,
+          counted: result.counted,
+          delta: result.delta,
+        }
+      : {
+          id: Date.now(),
+          product: selectedProduct.name,
+          sku: selectedProduct.sku,
+          location,
+          recorded: currentStock,
+          counted: Number(countedQuantity),
+          delta,
+        };
+
+    setAdjustmentLog((current) => [newAdjustment, ...current]);
+
+    if (result) {
+      // Reflect the new stock immediately so the "current recorded stock"
+      // field is correct if the same product is picked again.
+      setProducts((current) =>
+        current.map((item) =>
+          item.sku === result.sku ? { ...item, stock: result.counted } : item
+        )
+      );
+      setMessage(
+        `Adjustment confirmed for ${newAdjustment.product}. Stock changed by ${
+          newAdjustment.delta > 0 ? "+" : ""
+        }${newAdjustment.delta} units.`
+      );
+    } else {
+      setMessage(
+        `Adjustment saved locally — backend not reachable, stock wasn't updated on the server.`
+      );
+    }
 
     setProductId("");
     setLocation("");
@@ -120,9 +149,10 @@ export default function Adjustments() {
         <Button
           className="primary-button"
           onClick={confirmAdjustment}
+          disabled={submitting}
         >
           <Icon name="check" size={16} />
-          Confirm adjustment
+          {submitting ? "Confirming…" : "Confirm adjustment"}
         </Button>
       </header>
 
